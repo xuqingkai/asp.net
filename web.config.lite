@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<connectionStrings> 
+		<add name="Com.Xuqingkai.Data" providerName="SqlServer" connectionString="SqlServer://sa:123456@127.0.0.1/database" /> 
+	</connectionStrings>
+	<system.net> 
+        <settings> 
+               <httpWebRequest useUnsafeHeaderParsing="true" />
+        </settings> 
+    </system.net>
+	<system.web>
+		<!-- 设置SESSION过期时间 -->
+		<sessionState mode="InProc" timeout="600"/>
+		<!-- 设置默认编译语言，是否启用调试模式 -->
+		<compilation defaultLanguage="c#" debug="true" targetFramework="4.0" />
+		<!-- 设置编码，否则签名和非签名UTF8文件混合使用时中文会乱码 -->
+		<globalization requestEncoding="utf-8" responseEncoding="utf-8" fileEncoding="utf-8" />
+		<!-- 关闭HTTP请求验证 -->
+		<pages validateRequest="false" controlRenderingCompatibilityVersion="3.5" clientIDMode="AutoID" />
+		<!-- framework4.0下,允许请求html代码　　上传文件大小限制　　超时限制 -->
+		<httpRuntime requestValidationMode="2.0" maxRequestLength="1048576" executionTimeout="3600" />
+		<!-- 是否显示详细错误信息，如果Mode=On，则指定错误时转向URI -->
+		<customErrors mode="Off" defaultRedirect="/Error.html" redirectMode="ResponseRewrite" />
+	</system.web>
+	<system.webServer>
+		<!-- 禁止访问目录 -->
+		<directoryBrowse enabled="false" />
+		<!-- 指示不用再检测system.web里相同的配置，IIS7.0+ -->
+		<validation validateIntegratedModeConfiguration="false" />
+	</system.webServer>
+</configuration>
