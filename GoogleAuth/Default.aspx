@@ -16,7 +16,7 @@ if(secret == "" && Request.UrlReferrer != null)
 	secret = secret.Substring(0, secret.IndexOf("/"));
 }
 %>
-<img src="/qr/?text=otpauth://totp/徐清的老挝:id@<%=Request.Url.Host%>?secret=<%=UrlEncode(GoogleAuth(secret,0))%>&issuer=username" />
+<img src="/qr/?text=otpauth://totp/徐清的老挝:id@<%=Request.Url.Host%>?secret=<%=System.Web.HttpUtility.UrlEncode(GoogleAuth(secret,0))%>&issuer=username" />
 <hr /><%=GoogleAuth(secret,0)%>
 <hr />
 1、直接复制上面的密钥或扫码后再选中复制密钥<br />
