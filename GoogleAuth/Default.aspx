@@ -9,9 +9,9 @@
 <body>
 <%
 string secret = Request.QueryString["secret"] ?? Request.QueryString.ToString() ?? Request.Url.Host.ToLower();
-if(secret == "" && Request.Url.Referrer != null)
+if(secret == "" && Request.UrlReferrer != null)
 {
-	secret = Request.Url.Referrer.Host.ToLower();
+	secret = Request.UrlReferrer.Host.ToLower();
 	secret = secret.Substring(secret.IndexOf("://") + 3);
 	secret = secret.Substring(0, secret.IndexOf("/"));
 }
