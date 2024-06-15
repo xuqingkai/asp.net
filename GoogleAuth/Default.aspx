@@ -9,12 +9,7 @@
 <body>
 <%
 string secret = Request.QueryString["secret"] ?? Request.QueryString.ToString() ?? Request.Url.Host.ToLower();
-if(secret == "" && Request.UrlReferrer != null)
-{
-	secret = Request.UrlReferrer.Host.ToLower();
-	secret = secret.Substring(secret.IndexOf("://") + 3);
-	secret = secret.Substring(0, secret.IndexOf("/"));
-}
+if(secret == "" && Request.UrlReferrer != null){ secret = Request.UrlReferrer.Host.ToLower(); }
 string qrcode = GoogleAuth(secret,0);
 %>
 <p id="qrcode" title="点击图片保存到本地"></p>
