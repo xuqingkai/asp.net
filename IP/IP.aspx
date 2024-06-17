@@ -1,57 +1,30 @@
 <%@Page Language="C#" Debug="true" Inherits="System.Web.UI.Page"%>
-<%=VerifyImage(SqlClientIP())%>
+<%=VerifyImage(IP())%>
 <script runat="server">
-public static string SqlClientIP()
+public static string IP()
 {
-	string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["SqlClient"].ConnectionString;
-	System.Data.SqlClient.SqlConnection sqlConnection = new System.Data.SqlClient.SqlConnection(databaseConnectionString);
-	if (sqlConnection.State != System.Data.ConnectionState.Open) { sqlConnection.Open(); }
+	string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["Database"].ConnectionString;
+	System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
+	if (connection.State != System.Data.ConnectionState.Open) { connection.Open(); }
 
 	string ip = System.Web.HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
 	double timestamp = System.Math.Floor((System.DateTime.Now - System.Convert.ToDateTime("1970-01-01 00:00:00")).TotalSeconds);
 
 	string sql = "SELECT * FROM [xqk_ip_log] WHERE [ip]='" + ip + "' AND [create_timestamp]>" + (timestamp - 60*20)  + " ORDER BY ID DESC;";
-	System.Data.SqlClient.SqlCommand sqlCommand = new System.Data.SqlClient.SqlCommand(sql, sqlConnection);
+	System.Data.OleDb.OleDbCommand command = new System.Data.OleDb.OleDbCommand(sql, connection);
 	System.Data.DataTable dataTable = new System.Data.DataTable();
-	new System.Data.SqlClient.SqlDataAdapter(sqlCommand).Fill(dataTable);
+	new System.Data.OleDb.OleDbDataAdapter(command).Fill(dataTable);
 	if (dataTable.Rows.Count == 0) {
 		sql = "INSERT INTO [xqk_ip_log] ([ip], [create_date], [create_datetime], [create_timestamp]) VALUES ('" + ip + "', '" + System.DateTime.Now.ToString("yyyy-MM-dd") + "', '" + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', " + timestamp + ");";
-		sqlCommand = new System.Data.SqlClient.SqlCommand(sql, sqlConnection);
-		int rows = sqlCommand.ExecuteNonQuery();
+		command = new System.Data.OleDb.OleDbCommand(sql, connection);
+		int rows = command.ExecuteNonQuery();
 	}else{
 		System.Data.DataRow dr = dataTable.Rows[0];
 		ip = dr["ip"].ToString();
 	}
 
-	sqlConnection.Close();
-	sqlConnection.Dispose();
-
-	return ip;
-}
-public static string OleDbIP()
-{
-	string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["SqlClient"].ConnectionString;
-	System.Data.OleDb.OleDbConnection oleDbConnection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
-	if (oleDbConnection.State != System.Data.ConnectionState.Open) { oleDbConnection.Open(); }
-
-	string ip = System.Web.HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-	double timestamp = System.Math.Floor((System.DateTime.Now - System.Convert.ToDateTime("1970-01-01 00:00:00")).TotalSeconds);
-
-	string sql = "SELECT * FROM [xqk_ip_log] WHERE [ip]='" + ip + "' AND [create_timestamp]>" + (timestamp - 60*20)  + " ORDER BY ID DESC;";
-	System.Data.OleDb.OleDbCommand oleDbCommand = new System.Data.OleDb.OleDbCommand(sql, oleDbConnection);
-	System.Data.DataTable dataTable = new System.Data.DataTable();
-	new System.Data.OleDb.OleDbDataAdapter(oleDbCommand).Fill(dataTable);
-	if (dataTable.Rows.Count == 0) {
-		sql = "INSERT INTO [xqk_ip_log] ([ip], [create_date], [create_datetime], [create_timestamp]) VALUES ('" + ip + "', '" + System.DateTime.Now.ToString("yyyy-MM-dd") + "', '" + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', " + timestamp + ");";
-		oleDbCommand = new System.Data.OleDb.OleDbCommand(sql, oleDbConnection);
-		int rows = oleDbCommand.ExecuteNonQuery();
-	}else{
-		System.Data.DataRow dr = dataTable.Rows[0];
-		ip = dr["ip"].ToString();
-	}
-
-	oleDbConnection.Close();
-	oleDbConnection.Dispose();
+	connection.Close();
+	connection.Dispose();
 
 	return ip;
 }
