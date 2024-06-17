@@ -1,0 +1,11 @@
+# 上传目录
+[Uu]pload/
+
+#指定文件
+/callback/*.txt
+
+#证书文件
+*.pfx
+*.p12
+*.cer
+

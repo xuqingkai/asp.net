@@ -34,14 +34,16 @@
     </system.net>
     
 	<system.web>
+        <!-- 设置SESSION过期时间 -->
+		<sessionState mode="InProc" timeout="600"/>
 		<!-- 设置默认编译语言，是否启用调试模式 -->
 		<compilation defaultLanguage="c#" debug="true" targetFramework="4.0" />
 		<!-- 设置编码，否则签名和非签名UTF8文件混合使用时中文会乱码 -->
 		<globalization requestEncoding="utf-8" responseEncoding="utf-8" fileEncoding="utf-8" />
 		<!-- 关闭HTTP请求验证 -->
 		<pages validateRequest="false" controlRenderingCompatibilityVersion="3.5" clientIDMode="AutoID" />
-		<!-- framework4.0下,允许请求html代码　　上传文件大小限制　　超时限制 -->
-		<httpRuntime requestValidationMode="2.0" maxRequestLength="1048576" executionTimeout="3600" />
+		<!-- framework4.0下,允许请求html代码　requestPathInvalidCharacters为空表示允许所有，否则请指定并用逗号分割　上传文件大小限制　　超时限制 -->
+		<httpRuntime requestPathInvalidCharacters="" requestValidationMode="2.0" maxRequestLength="1048576" executionTimeout="3600" />
 		<!-- 是否显示详细错误信息，如果Mode=On，则指定错误时转向URI，IIS，双击错误页，右侧编辑功能设置，显示详细信息 -->
 		<customErrors mode="Off" defaultRedirect="/Error/" redirectMode="ResponseRewrite" />
 		<!-- 指定WebServices可接受的请求方式 -->
