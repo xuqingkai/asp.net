@@ -1,0 +1,50 @@
+﻿规则：尽量指定结尾(即以$结尾)，否则越精确的越写在前面，不区分大小写
+为防止重写后的地址覆盖真实目录访问地址，$符号前面一个字符一定不要是“/”！！！！！！！
+重写后的访问地址优先级要高于真实地址
+([0-9])或(\d)：单个数字
+([0-9]?)：0或1个数字
+([0-9]+)：至少一个数字
+([0-9]{5})：5个数字
+([0-9]{2-5})：2-5个数字
+([0-9]*)：任意个数字
+(.+)：任意字符，用于搜索关键字
+(\w+)：匹配包括下划线的任何单词字符，等价于[A-Za-z0-9_]
+\W：与上面那个刚好相反
+
+【演示】
+/UrlReWrite$             /UrlReWrite/UrlReWrite.aspx?File=News
+/UrlReWrite/List$             /UrlReWrite/UrlReWrite.aspx?File=News&Action=List
+/UrlReWrite/List/数$             /UrlReWrite/UrlReWrite.aspx?File=News&Action=List&ClassID=$1&Page=1
+/UrlReWrite/List/数/数$             /UrlReWrite/UrlReWrite.aspx?File=News&Action=List&ClassID=$1&Page=$2
+/UrlReWrite/Detail/数$             /UrlReWrite/UrlReWrite.aspx?File=News&Action=Detail&ID=$1&Page=1
+/UrlReWrite/Detail/数.html$             /UrlReWrite/UrlReWrite.aspx?File=News&Action=Detail&ID=$1&Page=1
+/UrlReWrite/Detail/数.html?字$             /UrlReWrite/UrlReWrite.aspx$2&File=News&Action=Detail&ID=$1&Page=1
+/UrlReWrite/yuanchuang$             /UrlReWrite/UrlReWrite.aspx?Action=Search&Tag=原创&keyword=原创,asd asd,asdasda
+/UrlReWrite/Search/字/数$             /UrlReWrite/UrlReWrite.aspx?Action=Search&Search=$1&Page=$2
+/UrlReWrite/Search/字$             /UrlReWrite/UrlReWrite.aspx?Action=Search&Search=$1&Page=1
+
+【正式】
+/About$             /Info.aspx?ID=1
+/Contact$             /Info.aspx?ID=2
+
+/Forum$             /Forum.aspx
+/Forum/数/数$         /Forum.aspx?CategoryID=$1&Page=$2
+/Forum/数$             /Forum.aspx?CategoryID=$1
+/Forum/数/数.html$         /Forum.aspx?ID=$1&Page=$2
+/Forum/数.html$             /Forum.aspx?ID=$1
+
+/News$                 /News.aspx
+/News/数/数$             /News.aspx?CategoryID=$1&Page=$2
+/News/数$             /News.aspx?CategoryID=$1
+/News/数.html$             /NewsDetail.aspx?ID=$1
+
+/Product$             /Product.aspx
+/Product/数/数$             /Product.aspx?CategoryID=$1&Page=$2
+/Product/数$             /Product.aspx?CategoryID=$1
+/Product/数.html$             /ProductDetail.aspx?ID=$1
+
+/Search$            /Product.aspx
+/Search/字/数$             /Product.aspx?Search=$1&Page=$2
+/Search/字$             /Product.aspx?Search=$1
+
+/(.+)([A-Za-z]+)$             /$1$2.aspx
