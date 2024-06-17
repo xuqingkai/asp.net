@@ -8,7 +8,7 @@
 </head>
 <body>
 <%
-string openAISecret = System.Configuration.ConfigurationManager.AppSettings["OpenAI/Secret"];
+string openAISecret = System.Configuration.ConfigurationManager.AppSettings["OpenAI.Secret"];
 
 Response.Clear();
 string type=Request.QueryString["type"];
