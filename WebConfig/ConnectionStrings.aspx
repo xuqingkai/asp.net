@@ -8,7 +8,7 @@
 </head>
 <body>
     <%
-    string name = Request.QueryString["name"] ?? "Com.Xuqingkai.Data";
+    string name = Request.QueryString["name"] ?? "Database";
     System.Configuration.ConnectionStringSettings database = System.Configuration.ConfigurationManager.ConnectionStrings[name];
     %>
 	<h1>【ConnectionStrings["<%=name%>"]】：ProviderName=<%=database.ProviderName%> </h1>
