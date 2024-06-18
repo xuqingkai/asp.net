@@ -32,6 +32,9 @@ public class RequestForward : System.Web.IHttpHandler
                 headers = strHeaders.Replace("|", ",").Split(',');
             }
         }
+        name = name.Replace(":", ".");
+        //context.Response.Write(name); context.Response.End();
+        
         string file = context.Server.MapPath("./" + name + ".txt");
         string data = null;
         string response = name;
@@ -50,14 +53,19 @@ public class RequestForward : System.Web.IHttpHandler
         else
         {
             System.Collections.Specialized.NameValueCollection header = new System.Collections.Specialized.NameValueCollection();
-            foreach(string key in context.Request.Headers.AllKeys)
+            foreach(string item in headers)
             {
-                foreach(string item in headers)
+                string headerKey = item;
+                string headerValue = "";
+                foreach(string key in context.Request.Headers.AllKeys)
                 {
-                    if(key.ToLower().Replace("-","") == (item).ToLower().Replace("-","")){
-                      header.Set(key, context.Request.Headers[key]); 
+                    if(item.ToLower().Replace("-","") == key.ToLower().Replace("-",""))
+                    {
+                        headerKey = key;
+                        headerValue = context.Request.Headers[key]; 
                     }
                 }
+                if(!string.IsNullOrEmpty(headerKey)){ header.Set(headerKey, headerValue); }
             }
             string strHeaders = "";
             foreach(string key in header.AllKeys) { strHeaders += key + ":" + header[key] + "\r\n"; }
@@ -70,7 +78,7 @@ public class RequestForward : System.Web.IHttpHandler
             text += System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\r\n";
             text += "-----【URL】------------------------------------------------------------------\r\n";
             text += context.Request.Url.PathAndQuery + "\r\n";
-            text += "-----【HEADER】------------------------------------------------------------------\r\n";
+            text += "-----【REQUEST_HEADER】------------------------------------------------------------------\r\n";
             foreach(string key in header.AllKeys)
             {
                 text += key + ":" + header[key] + "\r\n";
@@ -78,16 +86,21 @@ public class RequestForward : System.Web.IHttpHandler
             text += "-----【" + method + "】------------------------------------------------------------------\r\n";
             text += postString + "\r\n";
             if(!string.IsNullOrEmpty(url)){
-                if(string.Join("", headers).IndexOf("Content-Type") < 0){ header.Set("Content-Type", "application/x-www-form-urlencoded"); }
+                if(string.Join("", headers).ToLower().IndexOf("Content-Type") < 0){ header.Set("Content-Type", "application/x-www-form-urlencoded"); }
                 if(context.Request.HttpMethod == "GET")
                 {
-                    response = HttpGet(url, header);
+                    response = HttpGet(url, ref header);
                 }
                 else
                 {
-                    response = HttpPost(url, header, postString);
+                    response = HttpPost(url, postString, ref header);
                 }
 
+                text += "-----【RESPONSE_HEADER】------------------------------------------------------------------\r\n";
+                foreach(string key in header.AllKeys)
+                {
+                    text += key + ":" + header[key] + "\r\n";
+                }
                 text += "-----【RESPONSE】------------------------------------------------------------------\r\n";
                 text += response + "\r\n";
             }
@@ -108,7 +121,7 @@ public class RequestForward : System.Web.IHttpHandler
         string result = System.Text.Encoding.GetEncoding("UTF-8").GetString(bytes);
         return result;
     }
-    public static string HttpGet(string url, System.Collections.Specialized.NameValueCollection headers)
+    public static string HttpGet(string url, ref System.Collections.Specialized.NameValueCollection headers)
     {
         string result = null;
         System.Net.WebClient webClient = new System.Net.WebClient();
@@ -120,9 +133,27 @@ public class RequestForward : System.Web.IHttpHandler
         {
             if(headers["Content-Type"] == null && headers["ContentType"] != null) { headers.Add("Content-Type", headers["ContentType"]); headers.Remove("ContentType"); }
             if(headers["User-Agent"] == null && headers["UserAgent"] != null) { headers.Add("User-Agent", headers["UserAgent"]); headers.Remove("UserAgent"); }
-            foreach(string key in headers.Keys) { webClient.Headers.Add(key,headers[key]); }
+            foreach(string key in headers.Keys) { webClient.Headers.Add(key, headers[key]); }
             byte[] bytes = webClient.DownloadData(url);
             result = System.Text.Encoding.GetEncoding("UTF-8").GetString(bytes);
+            
+            System.Collections.Specialized.NameValueCollection responseHeader = new System.Collections.Specialized.NameValueCollection();
+            System.Net.WebHeaderCollection responseHeaders = webClient.ResponseHeaders;
+            foreach(string key in responseHeaders.AllKeys)
+            {
+                string headerKey = null;
+                string headerValue = "";
+                foreach(string item in headers.Keys)
+                {
+                    if(key.Replace("-","").ToLower() == item.Replace("-","").ToLower())
+                    {
+                        headerKey = key;
+                        headerValue = responseHeaders[key]; 
+                    }
+                }
+                if(!string.IsNullOrEmpty(headerKey)){ responseHeader.Set(headerKey, headerValue); }
+            }
+            headers = responseHeader;
         }
         catch (System.Net.WebException webException)
         {
@@ -134,12 +165,11 @@ public class RequestForward : System.Web.IHttpHandler
         }
         catch (System.Exception ex)
         {
-            result = "HttpGet:" + ex.Message;
-            //result = null;
+            result = ex.Message;
         }
         return result;
     }
-    public static string HttpPost(string url, System.Collections.Specialized.NameValueCollection headers, string data)
+    public static string HttpPost(string url, string data, ref System.Collections.Specialized.NameValueCollection headers)
     {
         string result = null;
         System.Net.WebClient webClient = new System.Net.WebClient();
@@ -151,9 +181,27 @@ public class RequestForward : System.Web.IHttpHandler
         {
             if(headers["Content-Type"] == null && headers["ContentType"] != null) { headers.Add("Content-Type", headers["ContentType"]); headers.Remove("ContentType"); }
             if(headers["User-Agent"] == null && headers["UserAgent"] != null) { headers.Add("User-Agent", headers["UserAgent"]); headers.Remove("UserAgent"); }
-            foreach(string key in headers.Keys) { webClient.Headers.Add(key,headers[key]); }
+            foreach(string key in headers.Keys) { webClient.Headers.Add(key, headers[key]); }
             byte[] bytes = webClient.UploadData(url, System.Text.Encoding.GetEncoding("UTF-8").GetBytes(data));
             result = System.Text.Encoding.GetEncoding("UTF-8").GetString(bytes);
+            
+            System.Collections.Specialized.NameValueCollection responseHeader = new System.Collections.Specialized.NameValueCollection();
+            System.Net.WebHeaderCollection responseHeaders = webClient.ResponseHeaders;
+            foreach(string key in responseHeaders.AllKeys)
+            {
+                string headerKey = null;
+                string headerValue = "";
+                foreach(string item in headers.Keys)
+                {
+                    if(key.Replace("-","").ToLower() == item.Replace("-","").ToLower())
+                    {
+                        headerKey = key;
+                        headerValue = responseHeaders[key]; 
+                    }
+                }
+                if(!string.IsNullOrEmpty(headerKey)){ responseHeader.Set(headerKey, headerValue); }
+            }
+            headers = responseHeader;
         }
         catch (System.Net.WebException webException)
         {
@@ -165,7 +213,7 @@ public class RequestForward : System.Web.IHttpHandler
         }
         catch (System.Exception ex)
         {
-            result = "HttpPost:" + ex.Message;
+            result = ex.Message;
         }
         return result;
     }
