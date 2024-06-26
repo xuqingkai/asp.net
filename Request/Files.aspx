@@ -24,11 +24,18 @@ foreach(System.Reflection.PropertyInfo propertyInfo in files.GetType().GetProper
     }
     Response.Write("</p>");
 }
-foreach(string key in files.AllKeys)
+for (int i = 0; i < files.Count; i++)
 {
-    Response.Write("<p>Files[\"" + key + "\"] = " + files[key] + "</p>");
+    Response.Write("<p>");
+    string key = files.AllKeys[i];
+    System.Web.HttpPostedFile file = files[i];
+    Response.Write("Files[\"" + key + "\"] = " + file.FileName);
+    string fileExt = System.IO.Path.GetExtension(file.FileName).ToLower() + "";
+    string filePath = System.DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + i + "_" + key + fileExt;
+    Response.Write(" → " + filePath);
+    //file.SaveAs(System.Web.HttpContext.Current.Server.MapPath(filePath));
+    Response.Write("</p>");
 }
-
 %>
 
 </body>
