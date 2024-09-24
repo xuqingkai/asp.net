@@ -3,8 +3,8 @@
 <script runat="server">
 public string IP(string connectionStringName)
 {
-    connectionStringName = connectionStringName.Replace("Provider=SQLOLEDB;", "");
 	string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString;
+	databaseConnectionString = databaseConnectionString.Replace("Provider=SQLOLEDB;", "");
 	System.Data.SqlClient.SqlConnection sqlConnection = new System.Data.SqlClient.SqlConnection(databaseConnectionString);
 	if (sqlConnection.State != System.Data.ConnectionState.Open) { sqlConnection.Open(); }
 
