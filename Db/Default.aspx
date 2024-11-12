@@ -1,25 +1,25 @@
-<?php
-$db=$_POST;
-
-if($db){
-    //exit(json_encode($db, JSON_UNESCAPED_UNICODE));
-    //header('Content-Type: application/json');
-    $dsn="mysql:host=".trim($db['hostname']).";port=".trim($db['hostport']).";dbname=".trim($db['database']).";charset=".trim($db['charset']);
-    if($db['type']=='sqlite'){ $dsn="sqlite:".trim($db['database']); }
-    //exit($dsn);
-    $result='';
-    try{
-        $pdo = new \PDO($dsn, trim($db['username']), trim($db['password']));
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // 设置错误模式为抛出异常
-        $query = $pdo->query($db['sql']);
-        $result = $query->fetchALL(\PDO::FETCH_ASSOC);
-        $result=json_encode($result, JSON_UNESCAPED_UNICODE);
-    }catch(PDOException $e){
-        $result=$e->getMessage();
-    }
-    exit($result);
-}
-?>
+<%@Page Language="C#" Debug="true" Inherits="System.Web.UI.Page"%>
+<%
+	string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString;
+	System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
+	if (connection.State != System.Data.ConnectionState.Open) { connection.Open(); }
+	
+	string ip = System.Web.HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+	double timestamp = System.Math.Floor((System.DateTime.Now - System.Convert.ToDateTime("1970-01-01 00:00:00")).TotalSeconds);
+	
+	string sql = "SELECT * FROM [xqk_ip_log] WHERE 1=1 ORDER BY ID DESC;";
+	System.Data.OleDb.OleDbCommand command = new System.Data.OleDb.OleDbCommand(sql, connection);
+	System.Data.DataTable dataTable = new System.Data.DataTable();
+	new System.Data.OleDb.OleDbDataAdapter(command).Fill(dataTable);
+	
+	foreach(System.Data.DataRow dr in dataTable.Rows)
+	{
+		Response.Write(dr["id"] + "【" + dr["ip"] + "】" + dr["create_datetime"] + "<hr />");
+	}
+	
+	connection.Close();
+	connection.Dispose();
+%>
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
 <head>
