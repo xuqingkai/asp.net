@@ -1,6 +1,8 @@
 <%@Page Language="C#" Debug="true" Inherits="System.Web.UI.Page"%>
 <%
-	string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString;
+System.Collections.Specialized.NameValueCollection db = System.Web.HttpContext.Current.Request.Form;
+if(db.Count>0){
+	string databaseConnectionString = "Provider=SQLOLEDB;Data Source=" + db["hostname"] + ";Initial Catalog=" + db["database"] + ";User ID=" + db["username"] + ";Password=" + db["password"] + "";
 	System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
 	if (connection.State != System.Data.ConnectionState.Open) { connection.Open(); }
 	
@@ -19,6 +21,7 @@
 	
 	connection.Close();
 	connection.Dispose();
+}
 %>
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
@@ -47,7 +50,7 @@
         </div>
         <div class="uk-grid-collapse uk-flex-middle" uk-grid>
             <div class="uk-width-1-4 uk-width-1-6@s uk-padding-small uk-text-right">主机</div>
-            <div class="uk-width-expand"><input class="uk-input" type="text" name="hostname" value=""></div>
+            <div class="uk-width-expand"><input class="uk-input" type="text" name="hostname" value="127.0.0.1"></div>
         </div>
         <div class="uk-grid-collapse uk-flex-middle" uk-grid>
             <div class="uk-width-1-4 uk-width-1-6@s uk-padding-small uk-text-right">端口</div>
