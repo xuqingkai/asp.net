@@ -103,8 +103,7 @@ if(db.Count>0){
         $('form').submit(function(e){
             e.preventDefault();
             $.post(window.location.href, $(this).serialize(),function(data){
-                $('#result').text(data);
-
+                $('#result').text(JSON.stringify(data));
             });
 
         });
