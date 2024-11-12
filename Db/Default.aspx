@@ -5,22 +5,30 @@ if(db.Count>0){
 	string databaseConnectionString = "Provider=SQLOLEDB;Data Source=" + db["hostname"] + ";Initial Catalog=" + db["database"] + ";User ID=" + db["username"] + ";Password=" + db["password"] + "";
 	System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
 	if (connection.State != System.Data.ConnectionState.Open) { connection.Open(); }
-	
-	string ip = System.Web.HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-	double timestamp = System.Math.Floor((System.DateTime.Now - System.Convert.ToDateTime("1970-01-01 00:00:00")).TotalSeconds);
-	
-	string sql = "SELECT * FROM [xqk_ip_log] WHERE 1=1 ORDER BY ID DESC;";
-	System.Data.OleDb.OleDbCommand command = new System.Data.OleDb.OleDbCommand(sql, connection);
+	System.Data.OleDb.OleDbCommand command = new System.Data.OleDb.OleDbCommand(db["sql"], connection);
 	System.Data.DataTable dataTable = new System.Data.DataTable();
 	new System.Data.OleDb.OleDbDataAdapter(command).Fill(dataTable);
 	
+	string json = "";
 	foreach(System.Data.DataRow dr in dataTable.Rows)
 	{
-		Response.Write(dr["id"] + "【" + dr["ip"] + "】" + dr["create_datetime"] + "<hr />");
+		string data = "";
+		foreach (System.Data.DataColumn dataColumn in dataRow.Table.Columns)
+		{
+			data += ",\"" + dataColumn.ColumnName + "\":\"" + dataRow[dataColumn] + "\"";
+		}
+		json += ",{" + json.Substring(1) + "}";	
 	}
-	
+	if(!string.IsNULLOrEmpty(json))
+	{
+		json = json.Substring(1);
+	}
 	connection.Close();
 	connection.Dispose();
+	
+	Response.Clear();
+	Response.Write(json);
+	Response.End();
 }
 %>
 <!DOCTYPE html>
