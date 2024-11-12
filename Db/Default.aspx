@@ -2,6 +2,7 @@
 <%
 System.Collections.Specialized.NameValueCollection db = System.Web.HttpContext.Current.Request.Form;
 if(db.Count>0){
+	Response.ContentType = "application/json";
 	string databaseConnectionString = "Provider=SQLOLEDB;Data Source=" + db["hostname"] + ";Initial Catalog=" + db["database"] + ";User ID=" + db["username"] + ";Password=" + db["password"] + "";
 	System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
 	if (connection.State != System.Data.ConnectionState.Open) { connection.Open(); }
@@ -13,16 +14,17 @@ if(db.Count>0){
 	foreach(System.Data.DataRow dr in dataTable.Rows)
 	{
 		string data = "";
-		foreach (System.Data.DataColumn dataColumn in dataRow.Table.Columns)
+		foreach (System.Data.DataColumn dataColumn in dr .Table.Columns)
 		{
-			data += ",\"" + dataColumn.ColumnName + "\":\"" + dataRow[dataColumn] + "\"";
+			data += ",\"" + dataColumn.ColumnName + "\":\"" + dr [dataColumn] + "\"";
 		}
 		json += ",{" + json.Substring(1) + "}";	
 	}
-	if(!string.IsNULLOrEmpty(json))
+	if(!string.IsNullOrEmpty(json))
 	{
 		json = json.Substring(1);
 	}
+	json = "[" + json + "]";
 	connection.Close();
 	connection.Dispose();
 	
