@@ -23,19 +23,18 @@ if(!string.IsNullOrEmpty(url))
         headers = strHeaders.Replace("|", ",").Split(',');
     }
 }
-string file = Server.MapPath("./" + name + ".txt");
 string data = null;
 string response = name;
 
 if(Request.QueryString.ToString() == "view")
 {
-    data = System.IO.File.Exists(file) ? Server.HtmlEncode(System.IO.File.ReadAllText(file)) : null;
+    data = Temp(name);
     response = "<!DOCTYPE html><html lang=\"zh\"><head><meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" /><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /><title>callback</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><style type=\"text/css\">body{font-size:14px;}textarea{width:99%;height:90vh;font-size:16px;}</style></head><body><form><a style=\"float:right\" href=\"?clear\">清空</a><a href=\"?view\">首页</a><textarea>" + data + "</textarea></form></body></html>";
     Response.Write(response);
 }
 else if(Request.QueryString.ToString() == "clear")
 {
-    System.IO.File.Delete(file);
+    Temp(name,"");
     Response.Redirect("?view");
 }
 else
@@ -83,9 +82,9 @@ else
         text += response + "\r\n";
     }
     text += "=======================================================================\r\n";
-    text += System.IO.File.Exists(file) ? System.IO.File.ReadAllText(file) : null;
+    text += Temp(name);
     
-    System.IO.File.WriteAllText(file, text);
+    Temp(name, text);
     Response.Write(response);
     Response.End();
 }
@@ -96,6 +95,54 @@ else
     {
         System.Web.HttpContext.Current.Response.ContentType="application/json; charset=utf-8";
         return "{\"name\":\"test\",\"age\":22}";   
+    }
+    public string Temp(string key, string val=null)
+    {
+        string model="io";//sql/io
+        if(model=="sql")
+        {
+            string file = Server.MapPath("./" + key + ".txt");
+            if(val==null)
+            {
+                if(System.IO.File.Exists(file)) { val = Server.HtmlEncode(System.IO.File.ReadAllText(file)); }
+            }
+            else if(val=="")
+            {
+                System.IO.File.Delete(file);
+            }
+            else
+            {
+                System.IO.File.WriteAllText(file, val);
+            }
+        }
+        else
+        {
+            string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["Database"].ConnectionString;
+            System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
+            if (connection.State != System.Data.ConnectionState.Open) { connection.Open(); }
+            System.Data.OleDb.OleDbCommand command = new System.Data.OleDb.OleDbCommand();
+            command.Connection=connection;
+
+            if(val==null)
+            {
+                command.CommandText="SELECT Contents FROM [xqk_temp] WHERE [temp_key]='callback'";
+                val = command.ExecuteScalar().ToString();
+            }
+            else if(val=="")
+            {
+                command.CommandText="UPDATE [xqk_temp] SET Contents='' WHERE [temp_key]='callback'";
+                command.ExecuteNonQuery();  
+            }
+            else
+            {
+                command.CommandText="UPDATE [xqk_temp] SET Contents='"+val+"'+Contents WHERE [temp_key]='callback'";
+                command.ExecuteNonQuery(); 
+            }
+            connection.Close();
+            connection.Dispose();
+        }
+        return val;
+
     }
     public static string HttpPost()
     {
