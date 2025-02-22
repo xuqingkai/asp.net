@@ -98,11 +98,11 @@ else
     }
     public string Temp(string key, string val=null)
     {
-        string model="sql";//sql/io
+        string model="io";//sql/io
 
 
 
-        
+
         if(model=="io")
         {
             string file = Server.MapPath("./" + key + ".txt");
