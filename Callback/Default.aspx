@@ -45,16 +45,16 @@ else
         foreach(string item in headers)
         {
             if(key.ToLower().Replace("-","") == (item).ToLower().Replace("-","")){
-              header.Set(key, Request.Headers[key]); 
+                header.Set(key, Request.Headers[key]); 
             }
         }
     }
     string strHeaders = "";
     foreach(string key in header.AllKeys) { strHeaders += key + ":" + header[key] + "\r\n"; }
-    //Response.Write(strHeaders);Response.End();
     
     string method = Request.HttpMethod;
     string postString = HttpPost();
+    //Response.Write(postString);Response.End();
 
     string text = "\r\n\r\n";
     text += System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\r\n";
@@ -83,7 +83,7 @@ else
     }
     text += "=======================================================================\r\n";
     text += Temp(name);
-    
+    //Response.Write(text);Response.End();
     Temp(name, text);
     Response.Write(response);
     Response.End();
@@ -98,17 +98,17 @@ else
     }
     public string Temp(string key, string val=null)
     {
-        string model="io";//sql/io
+        string model="sql";//sql/io
 
 
 
 
         if(model=="io")
         {
-            string file = Server.MapPath("./" + key + ".txt");
+            string file = System.Web.HttpContext.Current.Server.MapPath("./" + key + ".txt");
             if(val==null)
             {
-                if(System.IO.File.Exists(file)) { val = Server.HtmlEncode(System.IO.File.ReadAllText(file)); }
+                if(System.IO.File.Exists(file)) { val = System.Web.HttpContext.Current.Server.HtmlEncode(System.IO.File.ReadAllText(file)); }
             }
             else if(val=="")
             {
@@ -153,8 +153,10 @@ else
         System.IO.Stream stream = System.Web.HttpContext.Current.Request.InputStream;
         stream.Position = 0;
         byte[] bytes = new byte[stream.Length];
+        
         stream.Read(bytes, 0, bytes.Length);
         string result = System.Text.Encoding.GetEncoding("UTF-8").GetString(bytes);
+        //System.Web.HttpContext.Current.Response.Write(result+"***");System.Web.HttpContext.Current.Response.End();
         return result;
     }
     public static string HttpGet(string url, System.Collections.Specialized.NameValueCollection headers)
