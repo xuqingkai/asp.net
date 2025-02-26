@@ -40,13 +40,13 @@ public class RequestForward : System.Web.IHttpHandler
 
         if(context.Request.QueryString.ToString() == "view")
         {
-            data = Temp(name);
+            data = DataStorge(name);
             response = "<!DOCTYPE html><html lang=\"zh\"><head><meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" /><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /><title>callback</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><style type=\"text/css\">body{font-size:14px;}textarea{width:99%;height:90vh;font-size:16px;}</style></head><body><form><a style=\"float:right\" href=\"?clear\">清空</a><a href=\"?view\">首页</a><textarea>" + data + "</textarea></form></body></html>";
             context.Response.Write(response);
         }
         else if(context.Request.QueryString.ToString() == "clear")
         {
-            Temp(name,"");
+            DataStorge(name,"");
             context.Response.Redirect("?view");
         }
         else
@@ -104,22 +104,18 @@ public class RequestForward : System.Web.IHttpHandler
                 text += response + "\r\n";
             }
             text += "=======================================================================\r\n";
-            text += Temp(name);
+            text += DataStorge(name);
             
-            Temp(name, text);
+            DataStorge(name, text);
             context.Response.Write(response);
             context.Response.End();
         }
     }
-    public string Temp(string key, string val=null)
+    public string DataStorge(string key, string val=null)
     {
-        string model="sql";//sql/io
-
-
-
-
-        if(model=="io")
+        try
         {
+            System.IO.File.CreateText("./test.txt");
             string file = System.Web.HttpContext.Current.Server.MapPath("./" + key + ".txt");
             if(val==null)
             {
@@ -134,7 +130,7 @@ public class RequestForward : System.Web.IHttpHandler
                 System.IO.File.WriteAllText(file, val);
             }
         }
-        else
+        catch
         {
             string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["Database"].ConnectionString;
             System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
@@ -149,12 +145,13 @@ public class RequestForward : System.Web.IHttpHandler
             }
             else if(val=="")
             {
-                command.CommandText="UPDATE [xqk_temp] SET Contents='' WHERE [temp_key]='callback'";
+                command.CommandText="UPDATE [xqk_temp] SET [Contents]='' WHERE [temp_key]='callback'";
                 command.ExecuteNonQuery();  
             }
             else
             {
-                command.CommandText="UPDATE [xqk_temp] SET Contents='"+val+"'+Contents WHERE [temp_key]='callback'";
+                command.CommandText="UPDATE [xqk_temp] SET [Contents]=CONCAT(?,[Contents]) WHERE [temp_key]='callback'";
+                command.Parameters.Add(new System.Data.OleDb.OleDbParameter("Contents", val));
                 command.ExecuteNonQuery(); 
             }
             connection.Close();

@@ -2,6 +2,7 @@
 string name = "callback";
 string url = Request.PathInfo;
 string[] headers = new string[]{};
+
 if(!string.IsNullOrEmpty(url))
 {
     string strHeaders = null;
@@ -28,13 +29,13 @@ string response = name;
 
 if(Request.QueryString.ToString() == "view")
 {
-    data = Temp(name);
+    data = DataStorge(name);
     response = "<!DOCTYPE html><html lang=\"zh\"><head><meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" /><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /><title>callback</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><style type=\"text/css\">body{font-size:14px;}textarea{width:99%;height:90vh;font-size:16px;}</style></head><body><form><a style=\"float:right\" href=\"?clear\">清空</a><a href=\"?view\">首页</a><textarea>" + data + "</textarea></form></body></html>";
     Response.Write(response);
 }
 else if(Request.QueryString.ToString() == "clear")
 {
-    Temp(name,"");
+    DataStorge(name,"");
     Response.Redirect("?view");
 }
 else
@@ -60,7 +61,7 @@ else
     text += System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\r\n";
     text += "-----【URL】------------------------------------------------------------------\r\n";
     text += Request.Url.PathAndQuery + "\r\n";
-    text += "-----【HEADER】------------------------------------------------------------------\r\n";
+    text += "-----【REQUEST_HEADER】------------------------------------------------------------------\r\n";
     foreach(string key in header.AllKeys)
     {
         text += key + ":" + header[key] + "\r\n";
@@ -71,20 +72,24 @@ else
         if(string.Join("", headers).IndexOf("Content-Type") < 0){ header.Set("Content-Type", "application/x-www-form-urlencoded"); }
         if(Request.HttpMethod == "GET")
         {
-            response = HttpGet(url, header);
+            response = HttpGet(url, ref header);
         }
         else
         {
-            response = HttpPost(url, header, postString);
+            response = HttpPost(url, postString, ref header);
         }
-
+        text += "-----【RESPONSE_HEADER】------------------------------------------------------------------\r\n";
+        foreach(string key in header.AllKeys)
+        {
+            text += key + ":" + header[key] + "\r\n";
+        }
         text += "-----【RESPONSE】------------------------------------------------------------------\r\n";
         text += response + "\r\n";
     }
     text += "=======================================================================\r\n";
-    text += Temp(name);
+    text += DataStorge(name);
     //Response.Write(text);Response.End();
-    Temp(name, text);
+    DataStorge(name, text);
     Response.Write(response);
     Response.End();
 }
@@ -96,15 +101,11 @@ else
         System.Web.HttpContext.Current.Response.ContentType="application/json; charset=utf-8";
         return "{\"name\":\"test\",\"age\":22}";   
     }
-    public string Temp(string key, string val=null)
+    public string DataStorge(string key, string val=null)
     {
-        string model="sql";//sql/io
-
-
-
-
-        if(model=="io")
+        try
         {
+            System.IO.File.CreateText("./test.txt");
             string file = System.Web.HttpContext.Current.Server.MapPath("./" + key + ".txt");
             if(val==null)
             {
@@ -119,7 +120,7 @@ else
                 System.IO.File.WriteAllText(file, val);
             }
         }
-        else
+        catch
         {
             string databaseConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["Database"].ConnectionString;
             System.Data.OleDb.OleDbConnection connection = new System.Data.OleDb.OleDbConnection(databaseConnectionString);
@@ -134,12 +135,13 @@ else
             }
             else if(val=="")
             {
-                command.CommandText="UPDATE [xqk_temp] SET Contents='' WHERE [temp_key]='callback'";
+                command.CommandText="UPDATE [xqk_temp] SET [Contents]='' WHERE [temp_key]='callback'";
                 command.ExecuteNonQuery();  
             }
             else
             {
-                command.CommandText="UPDATE [xqk_temp] SET Contents='"+val+"'+Contents WHERE [temp_key]='callback'";
+                command.CommandText="UPDATE [xqk_temp] SET [Contents]=CONCAT(?,[Contents]) WHERE [temp_key]='callback'";
+                command.Parameters.Add(new System.Data.OleDb.OleDbParameter("Contents", val));
                 command.ExecuteNonQuery(); 
             }
             connection.Close();
@@ -159,7 +161,7 @@ else
         //System.Web.HttpContext.Current.Response.Write(result+"***");System.Web.HttpContext.Current.Response.End();
         return result;
     }
-    public static string HttpGet(string url, System.Collections.Specialized.NameValueCollection headers)
+    public static string HttpGet(string url, ref System.Collections.Specialized.NameValueCollection headers)
     {
         string result = null;
         System.Net.WebClient webClient = new System.Net.WebClient();
@@ -190,7 +192,7 @@ else
         }
         return result;
     }
-    public static string HttpPost(string url, System.Collections.Specialized.NameValueCollection headers, string data)
+    public static string HttpPost(string url, string data, ref System.Collections.Specialized.NameValueCollection headers)
     {
         string result = null;
         System.Net.WebClient webClient = new System.Net.WebClient();
